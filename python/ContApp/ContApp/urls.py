@@ -17,6 +17,10 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
+from ContApp.cont01app.views import create_counter
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('counters/<int:counter_id>/stats/', get_group_stats),
+    path('counters/create/', create_counter),
 ]
