@@ -7,9 +7,11 @@ from django.db import models
 class CounterGroup(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField(blank=True)
+    image = models.ImageField(upload_to='counter_images/', null=True, blank=True)
+
     creator = models.ForeignKey(User, on_delete=models.CASCADE)
 
-    invitate_code = models.UUIDField(default=uuid.uuid4, editable=False)
+    invite_code = models.UUIDField(default=uuid.uuid4, editable=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
     close_at = models.DateTimeField()
