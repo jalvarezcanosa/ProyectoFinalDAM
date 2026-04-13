@@ -9,6 +9,33 @@ from django.shortcuts import render, get_object_or_404
 
 from ContApp.cont01app.models import CounterGroup, CountEntry
 
+def get_counter(request):
+    if request.method == 'GET':
+        counter = CounterGroup.objects.filter(participants = request.user)
+
+        status = request.GET.get('status')
+
+        if status == 'active':
+            counter = counter.filter(closes_at__gt=timezone.now())
+        elif status == 'finished':
+            counter = counter.filter(closes_at__le=timezone.now())
+
+        counters_list = []
+        for c in counter:
+            counters_list.append({
+                "id": c.id,
+                "title": c.title,
+                "description": c.description,
+                "image_url": c.image,
+                "closes_at": c.close_at,
+                "is_closed": c.close_at <= timezone.now(),
+                "participants_count": c.participants.count(),
+            })
+
+        return JsonResponse(counters_list, safe=False, status=200)
+
+    else:
+        return JsonResponse({"error": "Method not allowed!"}, status=405)
 
 def create_counter(request):
     if request.method == 'POST':
