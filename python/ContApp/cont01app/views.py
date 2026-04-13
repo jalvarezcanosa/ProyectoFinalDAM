@@ -109,3 +109,17 @@ def update_counter(request, counter_id):
         }, status=200)
     else:
         return JsonResponse({"error": "Method not allowed!"}, status=405)
+
+def delete_counter(request, counter_id):
+    if request.method == 'DELETE':
+        counter = get_object_or_404(CounterGroup, id=counter_id)
+
+        if counter.creator != request.user:
+            return JsonResponse({"message": "Forbidden: Only the creator can delete this counter."}, status=403)
+
+        counter.delete()
+
+        return JsonResponse({"message": "Counter deleted successfully!"}, status=200)
+
+    else:
+        return JsonResponse({"error": "Method not allowed!"}, status=405)
