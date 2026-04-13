@@ -123,3 +123,28 @@ def delete_counter(request, counter_id):
 
     else:
         return JsonResponse({"error": "Method not allowed!"}, status=405)
+
+def increment_counter(request, counter_id):
+    if request.method == 'POST':
+        counter = get_object_or_404(CounterGroup, id=counter_id)
+
+        if counter.close_at < timezone.now():
+            return JsonResponse({'error': 'Counter already closed!'}, status=400)
+
+        if request.user not in counter.participants.all():
+            return JsonResponse({'error': 'You must join the counter first'}, status=401)
+
+        CountEntry.objects.create(
+            user=request.user,
+            counter=counter,
+        )
+
+        user_total_clicks = CountEntry.objects.filter(user=request.user, counter=counter).count()
+
+        return JsonResponse({
+            'message': 'Counter incremented successfully!',
+            'user_total_clicks': user_total_clicks
+        }, status=200)
+
+    else:
+        return JsonResponse({"error": "Method not allowed!"}, status=405)
