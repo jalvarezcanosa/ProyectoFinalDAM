@@ -50,7 +50,6 @@ def create_counter(request):
 
         return JsonResponse({"message": "Counter created successfully!",
         "counter_id": new_counter.id}, status=201)
-
     else:
         return JsonResponse({"error": "Method not allowed!"}, status=405)
 
@@ -78,4 +77,35 @@ def get_counter_stats(request, counter_id):
         }
 
         return JsonResponse(response_data, safe=False, status=200)
+    else:
+        return JsonResponse({"error": "Method not allowed!"}, status=405)
 
+def update_counter(request, counter_id):
+    if request.method == 'PUT':
+        counter = get_object_or_404(CounterGroup, id=counter_id)
+
+        if counter.creator != request.user:
+            return JsonResponse({'error': 'Not authorized'}, status=401)
+
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        if 'title' in data:
+            counter.title = data['title']
+
+        if 'description' in data:
+            counter.description = data['description']
+
+        if 'closes_at' in data:
+            counter.closes_at = data['closes_at']
+
+        counter.save()
+
+        return JsonResponse({
+            "message": "Counter updated successfully!",
+            "counter_id": counter.id
+        }, status=200)
+    else:
+        return JsonResponse({"error": "Method not allowed!"}, status=405)
