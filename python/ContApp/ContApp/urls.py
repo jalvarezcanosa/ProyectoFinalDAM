@@ -17,10 +17,12 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 
-from cont01app.views import create_counter, get_counter_stats, update_counter, delete_counter, increment_counter
+from cont01app.views import create_counter, get_counter_stats, update_counter, delete_counter, increment_counter, \
+    get_counter
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('counters/', get_counter),
     path('counters/<int:counter_id>/stats/', get_counter_stats),
     path('counters/create/', create_counter),
     path('counters/<int:counter_id>/update/', update_counter),
