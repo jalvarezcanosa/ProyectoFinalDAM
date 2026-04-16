@@ -92,9 +92,9 @@ def get_counter_stats(request, counter_id):
         )
 
         if sort_order == 'asc':
-            ranking_query = ranking_query.order_by('total-clicks')
+            ranking_query = ranking_query.order_by('total_clicks')
         else:
-            ranking_query = ranking_query.order_by('-total-clicks')
+            ranking_query = ranking_query.order_by('-total_clicks')
 
         response_data = {
             "counter": counter.title,
@@ -155,7 +155,7 @@ def increment_counter(request, counter_id):
     if request.method == 'POST':
         counter = get_object_or_404(CounterGroup, id=counter_id)
 
-        if counter.close_at < timezone.now():
+        if counter.state == 'finished':
             return JsonResponse({'error': 'Counter already closed!'}, status=400)
 
         if request.user not in counter.participants.all():

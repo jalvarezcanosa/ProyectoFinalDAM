@@ -31,7 +31,7 @@ class CounterGroup(models.Model):
 
 class CountEntry(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
-    group = models.ForeignKey(CounterGroup, on_delete=models.CASCADE, related_name='entries')
+    counter = models.ForeignKey(CounterGroup, on_delete=models.CASCADE, related_name='entries')
     timestamp = models.DateTimeField(auto_now_add=True)
 
     class Meta:
