@@ -1,4 +1,5 @@
 import uuid
+from datetime import timezone
 
 from django.contrib.auth.models import User
 from django.db import models
@@ -15,6 +16,13 @@ class CounterGroup(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     close_at = models.DateTimeField()
+
+    @property
+    def state(self):
+        if timezone.now() > self.close_at:
+            return 'finished'
+        else:
+            return 'active'
 
     participants = models.ManyToManyField(User, related_name='counter_group_participants')
 

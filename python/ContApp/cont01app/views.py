@@ -1,13 +1,13 @@
 import json
 import base64
-from datetime import timezone
+from django.utils import timezone
 
 from django.core.files.base import ContentFile
 from django.db.models import Count, F
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 
-from ContApp.cont01app.models import CounterGroup, CountEntry
+from cont01app.models import CounterGroup, CountEntry
 
 def get_counter(request):
     if request.method == 'GET':
@@ -16,9 +16,9 @@ def get_counter(request):
         status = request.GET.get('status')
 
         if status == 'active':
-            counter = counter.filter(closes_at__gt=timezone.now())
+            counter = counter.filter(close_at__gt=timezone.now())
         elif status == 'finished':
-            counter = counter.filter(closes_at__le=timezone.now())
+            counter = counter.filter(close_at__le=timezone.now())
 
         counters_list = []
         for c in counter:
@@ -27,8 +27,8 @@ def get_counter(request):
                 "title": c.title,
                 "description": c.description,
                 "image_url": c.image,
-                "closes_at": c.close_at,
-                "is_closed": c.close_at <= timezone.now(),
+                "close_at": c.close_at,
+                "state": c.state,
                 "participants_count": c.participants.count(),
             })
 
@@ -46,16 +46,16 @@ def create_counter(request):
 
         title = data.get('title')
         description = data.get('description')
-        closes_at = data.get('closes_at')
+        close_at = data.get('close_at')
         image_b64 = data.get('image_base64')
 
-        if not title or not closes_at:
-            return JsonResponse({'message': 'Title and closes at are required'}, status=400)
+        if not title or not close_at:
+            return JsonResponse({'message': 'Title and close at are required'}, status=400)
 
         new_counter = CounterGroup(
             title=title,
             description=description,
-            closes_at=closes_at,
+            close_at=close_at,
             creator = request.user,
         )
 
@@ -98,7 +98,7 @@ def get_counter_stats(request, counter_id):
 
         response_data = {
             "counter": counter.title,
-            "closes_at": counter.close_at < timezone.now(),
+            "close_at": counter.close_at < timezone.now(),
             "participants": counter.participants.count(),
             "ranking": list(ranking_query),
         }
@@ -125,8 +125,8 @@ def update_counter(request, counter_id):
         if 'description' in data:
             counter.description = data['description']
 
-        if 'closes_at' in data:
-            counter.closes_at = data['closes_at']
+        if 'close_at' in data:
+            counter.close_at = data['close_at']
 
         counter.save()
 
