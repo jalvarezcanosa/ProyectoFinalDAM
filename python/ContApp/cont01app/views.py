@@ -14,13 +14,11 @@ def get_counter(request):
     if request.method == 'GET':
         user_counters = Counter.objects.filter(participants=request.user)
 
-        # 5. Lógica del status (Opción A): Pre-procesamiento de fechas
         for c in user_counters:
             if c.closed_at < timezone.now() and c.status != 'closed':
                 c.status = 'closed'
                 c.save()
 
-        # Filtrado tras actualizar estados
         status_param = request.GET.get('status')
         if status_param == 'open':
             user_counters = user_counters.filter(status='open')
@@ -29,7 +27,6 @@ def get_counter(request):
 
         counters_list = []
         for c in user_counters:
-            # 6. Obtener individual_count y global_count
             membership = CounterMembership.objects.filter(user=request.user, counter=c).first()
             individual_count = membership.individual_count if membership else 0
             global_count = CounterMembership.objects.filter(counter=c).aggregate(total=Sum('individual_count'))[
@@ -77,10 +74,8 @@ def create_counter(request):
 
         new_counter.save()
 
-        # Guardar la membresía inicial del creador
         CounterMembership.objects.create(user=request.user, counter=new_counter, individual_count=0)
 
-        # 12. Devolver invite_code
         return JsonResponse({
             "message": "Counter created successfully!",
             "counter_id": new_counter.id,
@@ -97,16 +92,13 @@ def get_counter_stats(request, counter_id):
     if request.method == 'GET':
         counter = get_object_or_404(Counter, id=counter_id)
 
-        # 7. Verificación de membresía
         if not CounterMembership.objects.filter(user=request.user, counter=counter).exists():
             return JsonResponse({'error': 'You are not a member of this counter'}, status=403)
 
-        # 8. Lógica del status (Opción A) antes de responder
         if counter.closed_at < timezone.now() and counter.status != 'closed':
             counter.status = 'closed'
             counter.save()
 
-        # 2. Ranking con individual_count y orden descendente por defecto (eliminado sort_order)
         ranking_query = CounterMembership.objects.filter(counter=counter).values(
             username=F('user__username'),
             total_clicks=F('individual_count')
@@ -131,7 +123,6 @@ def update_counter(request, counter_id):
     if request.method == 'PUT':
         counter = get_object_or_404(Counter, id=counter_id)
 
-        # 3. Código de error 403 y validación de status
         if counter.creator != request.user:
             return JsonResponse({'error': 'Not authorized'}, status=403)
 
@@ -174,7 +165,6 @@ def delete_counter(request, counter_id):
 
         counter.delete()
 
-        # 4. Código de respuesta 204 No Content
         return JsonResponse({}, status=204)
 
     else:
@@ -191,7 +181,6 @@ def increment_counter(request, counter_id):
         if counter.status == 'closed':
             return JsonResponse({'error': 'Counter is already closed!'}, status=400)
 
-        # 1. Buscar membresía existente y sumar
         membership = CounterMembership.objects.filter(user=request.user, counter=counter).first()
 
         if not membership:
@@ -200,7 +189,6 @@ def increment_counter(request, counter_id):
         membership.individual_count += 1
         membership.save()
 
-        # Cálculo del conteo global
         global_count = CounterMembership.objects.filter(counter=counter).aggregate(total=Sum('individual_count'))[
                            'total'] or 0
 
@@ -214,7 +202,6 @@ def increment_counter(request, counter_id):
         return JsonResponse({"error": "Method not allowed!"}, status=405)
 
 
-# 9. Endpoint join_counter
 def join_counter(request):
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'Authentication required'}, status=401)
