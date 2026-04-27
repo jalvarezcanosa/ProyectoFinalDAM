@@ -7,18 +7,18 @@ from django.db.models import Count, F
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 
-from cont01app.models import CounterGroup, CountEntry
+from cont01app.models import Counter, CountEntry
 
 def get_counter(request):
     if request.method == 'GET':
-        counter = CounterGroup.objects.filter(participants = request.user)
+        counter = Counter.objects.filter(participants = request.user)
 
         status = request.GET.get('status')
 
         if status == 'active':
-            counter = counter.filter(close_at__gt=timezone.now())
+            counter = counter.filter(closed_at__gt=timezone.now())
         elif status == 'finished':
-            counter = counter.filter(close_at__le=timezone.now())
+            counter = counter.filter(closed_at__le=timezone.now())
 
         counters_list = []
         for c in counter:
@@ -27,7 +27,7 @@ def get_counter(request):
                 "title": c.title,
                 "description": c.description,
                 "image_url": c.image,
-                "close_at": c.close_at,
+                "closed_at": c.closed_at,
                 "state": c.state,
                 "participants_count": c.participants.count(),
             })
@@ -46,16 +46,16 @@ def create_counter(request):
 
         title = data.get('title')
         description = data.get('description')
-        close_at = data.get('close_at')
+        closed_at = data.get('closed_at')
         image_b64 = data.get('image_base64')
 
-        if not title or not close_at:
+        if not title or not closed_at:
             return JsonResponse({'message': 'Title and close at are required'}, status=400)
 
-        new_counter = CounterGroup(
+        new_counter = Counter(
             title=title,
             description=description,
-            close_at=close_at,
+            closed_at=closed_at,
             creator = request.user,
         )
 
@@ -82,7 +82,7 @@ def create_counter(request):
 
 def get_counter_stats(request, counter_id):
     if request.method == 'GET':
-        counter = get_object_or_404(CounterGroup, id=counter_id)
+        counter = get_object_or_404(Counter, id=counter_id)
 
         sort_order = request.GET.get('sort_order', 'desc')
         ranking_query = CountEntry.objects.filter(counter=counter).values(
@@ -98,7 +98,7 @@ def get_counter_stats(request, counter_id):
 
         response_data = {
             "counter": counter.title,
-            "close_at": counter.close_at < timezone.now(),
+            "closed_at": counter.closed_at < timezone.now(),
             "participants": counter.participants.count(),
             "ranking": list(ranking_query),
         }
@@ -109,7 +109,7 @@ def get_counter_stats(request, counter_id):
 
 def update_counter(request, counter_id):
     if request.method == 'PUT':
-        counter = get_object_or_404(CounterGroup, id=counter_id)
+        counter = get_object_or_404(Counter, id=counter_id)
 
         if counter.creator != request.user:
             return JsonResponse({'error': 'Not authorized'}, status=401)
@@ -125,8 +125,8 @@ def update_counter(request, counter_id):
         if 'description' in data:
             counter.description = data['description']
 
-        if 'close_at' in data:
-            counter.close_at = data['close_at']
+        if 'closed_at' in data:
+            counter.closed_at = data['closed_at']
 
         counter.save()
 
@@ -139,7 +139,7 @@ def update_counter(request, counter_id):
 
 def delete_counter(request, counter_id):
     if request.method == 'DELETE':
-        counter = get_object_or_404(CounterGroup, id=counter_id)
+        counter = get_object_or_404(Counter, id=counter_id)
 
         if counter.creator != request.user:
             return JsonResponse({"message": "Forbidden: Only the creator can delete this counter."}, status=403)
@@ -153,7 +153,7 @@ def delete_counter(request, counter_id):
 
 def increment_counter(request, counter_id):
     if request.method == 'POST':
-        counter = get_object_or_404(CounterGroup, id=counter_id)
+        counter = get_object_or_404(Counter, id=counter_id)
 
         if counter.state == 'finished':
             return JsonResponse({'error': 'Counter already closed!'}, status=400)
