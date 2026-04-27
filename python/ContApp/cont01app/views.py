@@ -1,27 +1,40 @@
 import json
-import base64
 from django.utils import timezone
-
-from django.core.files.base import ContentFile
-from django.db.models import Count, F
+from django.db.models import F, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 
 from cont01app.models import Counter, CounterMembership
 
+
 def get_counter(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Authentication required'}, status=401)
+
     if request.method == 'GET':
-        counter = Counter.objects.filter(participants=request.user)
+        user_counters = Counter.objects.filter(participants=request.user)
 
+        # 5. Lógica del status (Opción A): Pre-procesamiento de fechas
+        for c in user_counters:
+            if c.closed_at < timezone.now() and c.status != 'closed':
+                c.status = 'closed'
+                c.save()
+
+        # Filtrado tras actualizar estados
         status_param = request.GET.get('status')
-
         if status_param == 'open':
-            counter = counter.filter(status='open')
+            user_counters = user_counters.filter(status='open')
         elif status_param == 'closed':
-            counter = counter.filter(status='closed')
+            user_counters = user_counters.filter(status='closed')
 
         counters_list = []
-        for c in counter:
+        for c in user_counters:
+            # 6. Obtener individual_count y global_count
+            membership = CounterMembership.objects.filter(user=request.user, counter=c).first()
+            individual_count = membership.individual_count if membership else 0
+            global_count = CounterMembership.objects.filter(counter=c).aggregate(total=Sum('individual_count'))[
+                               'total'] or 0
+
             counters_list.append({
                 "id": c.id,
                 "title": c.title,
@@ -29,24 +42,25 @@ def get_counter(request):
                 "image_url": c.image.url if c.image else None,
                 "closed_at": c.closed_at,
                 "status": c.status,
-                "participants_count": c.participants.count(),
+                "individual_count": individual_count,
+                "global_count": global_count,
             })
 
         return JsonResponse(counters_list, safe=False, status=200)
+
     else:
         return JsonResponse({"error": "Method not allowed!"}, status=405)
 
-def create_counter(request):
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
-        title = data.get('title')
-        description = data.get('description')
-        closed_at = data.get('closed_at')
-        image_b64 = data.get('image_base64')
+def create_counter(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Authentication required'}, status=401)
+
+    if request.method == 'POST':
+        title = request.POST.get('title')
+        description = request.POST.get('description')
+        closed_at = request.POST.get('closed_at')
+        image = request.FILES.get('image')
 
         if not title or not closed_at:
             return JsonResponse({'message': 'Title and closed_at are required'}, status=400)
@@ -58,47 +72,49 @@ def create_counter(request):
             creator=request.user,
         )
 
-        if image_b64:
-            if ';base64,' in image_b64:
-                format, imgstr = image_b64.split(';base64,')
-                ext = format.split('/')[-1]
-            else:
-                imgstr = image_b64
-                ext = 'jpg'
-
-            data_image = ContentFile(base64.b64decode(imgstr), name=f'foto_temp.{ext}')
-            new_counter.image = data_image
+        if image:
+            new_counter.image = image
 
         new_counter.save()
-        new_counter.participants.add(request.user)
 
+        # Guardar la membresía inicial del creador
+        CounterMembership.objects.create(user=request.user, counter=new_counter, individual_count=0)
+
+        # 12. Devolver invite_code
         return JsonResponse({
             "message": "Counter created successfully!",
-            "counter_id": new_counter.id
+            "counter_id": new_counter.id,
+            "invite_code": str(new_counter.invite_code)
         }, status=201)
     else:
         return JsonResponse({"error": "Method not allowed!"}, status=405)
 
+
 def get_counter_stats(request, counter_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Authentication required'}, status=401)
+
     if request.method == 'GET':
         counter = get_object_or_404(Counter, id=counter_id)
 
-        sort_order = request.GET.get('sort_order', 'desc')
-        ranking_query = CounterMembership.objects.filter(counter=counter).values(
-            username=F('user__username')
-        ).annotate(
-            total_clicks=Count('id'),
-        )
+        # 7. Verificación de membresía
+        if not CounterMembership.objects.filter(user=request.user, counter=counter).exists():
+            return JsonResponse({'error': 'You are not a member of this counter'}, status=403)
 
-        if sort_order == 'asc':
-            ranking_query = ranking_query.order_by('total_clicks')
-        else:
-            ranking_query = ranking_query.order_by('-total_clicks')
+        # 8. Lógica del status (Opción A) antes de responder
+        if counter.closed_at < timezone.now() and counter.status != 'closed':
+            counter.status = 'closed'
+            counter.save()
+
+        # 2. Ranking con individual_count y orden descendente por defecto (eliminado sort_order)
+        ranking_query = CounterMembership.objects.filter(counter=counter).values(
+            username=F('user__username'),
+            total_clicks=F('individual_count')
+        ).order_by('-individual_count')
 
         response_data = {
             "counter": counter.title,
             "status": counter.status,
-            "closed_at_passed": counter.closed_at < timezone.now(),
             "participants": counter.participants.count(),
             "ranking": list(ranking_query),
         }
@@ -107,12 +123,20 @@ def get_counter_stats(request, counter_id):
     else:
         return JsonResponse({"error": "Method not allowed!"}, status=405)
 
+
 def update_counter(request, counter_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Authentication required'}, status=401)
+
     if request.method == 'PUT':
         counter = get_object_or_404(Counter, id=counter_id)
 
+        # 3. Código de error 403 y validación de status
         if counter.creator != request.user:
-            return JsonResponse({'error': 'Not authorized'}, status=401)
+            return JsonResponse({'error': 'Not authorized'}, status=403)
+
+        if counter.status == 'closed':
+            return JsonResponse({'error': 'Counter is closed and cannot be modified'}, status=400)
 
         try:
             data = json.loads(request.body)
@@ -137,7 +161,11 @@ def update_counter(request, counter_id):
     else:
         return JsonResponse({"error": "Method not allowed!"}, status=405)
 
+
 def delete_counter(request, counter_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Authentication required'}, status=401)
+
     if request.method == 'DELETE':
         counter = get_object_or_404(Counter, id=counter_id)
 
@@ -145,32 +173,81 @@ def delete_counter(request, counter_id):
             return JsonResponse({"message": "Forbidden: Only the creator can delete this counter."}, status=403)
 
         counter.delete()
-        return JsonResponse({"message": "Counter deleted successfully!"}, status=200)
+
+        # 4. Código de respuesta 204 No Content
+        return JsonResponse({}, status=204)
 
     else:
         return JsonResponse({"error": "Method not allowed!"}, status=405)
 
+
 def increment_counter(request, counter_id):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Authentication required'}, status=401)
+
     if request.method == 'POST':
         counter = get_object_or_404(Counter, id=counter_id)
 
         if counter.status == 'closed':
             return JsonResponse({'error': 'Counter is already closed!'}, status=400)
 
-        if request.user not in counter.participants.all():
+        # 1. Buscar membresía existente y sumar
+        membership = CounterMembership.objects.filter(user=request.user, counter=counter).first()
+
+        if not membership:
             return JsonResponse({'error': 'You must join the counter first'}, status=401)
 
-        CounterMembership.objects.create(
-            user=request.user,
-            counter=counter,
-        )
+        membership.individual_count += 1
+        membership.save()
 
-        user_total_clicks = CounterMembership.objects.filter(user=request.user, counter=counter).count()
+        # Cálculo del conteo global
+        global_count = CounterMembership.objects.filter(counter=counter).aggregate(total=Sum('individual_count'))[
+                           'total'] or 0
 
         return JsonResponse({
             'message': 'Counter incremented successfully!',
-            'user_total_clicks': user_total_clicks
+            'individual_count': membership.individual_count,
+            'global_count': global_count
         }, status=200)
+
+    else:
+        return JsonResponse({"error": "Method not allowed!"}, status=405)
+
+
+# 9. Endpoint join_counter
+def join_counter(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Authentication required'}, status=401)
+
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+
+        invite_code = data.get('invite_code')
+        if not invite_code:
+            return JsonResponse({'error': 'invite_code is required'}, status=400)
+
+        counter = Counter.objects.filter(invite_code=invite_code).first()
+        if not counter:
+            return JsonResponse({'error': 'Counter not found'}, status=404)
+
+        if counter.status != 'open':
+            return JsonResponse({'error': 'Counter is closed'}, status=400)
+
+        if CounterMembership.objects.filter(user=request.user, counter=counter).exists():
+            return JsonResponse({'error': 'You are already a member'}, status=400)
+
+        CounterMembership.objects.create(user=request.user, counter=counter, individual_count=0)
+
+        return JsonResponse({
+            'id': counter.id,
+            'title': counter.title,
+            'description': counter.description,
+            'status': counter.status,
+            'invite_code': str(counter.invite_code)
+        }, status=201)
 
     else:
         return JsonResponse({"error": "Method not allowed!"}, status=405)
