@@ -85,7 +85,7 @@ def create_counter(request):
         return JsonResponse({"error": "Method not allowed!"}, status=405)
 
 
-def get_counter_stats(request, counter_id):
+def get_counter_by_id(request, counter_id):
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'Authentication required'}, status=401)
 
