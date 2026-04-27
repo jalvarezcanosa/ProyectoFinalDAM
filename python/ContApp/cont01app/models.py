@@ -17,13 +17,12 @@ class Counter(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     closed_at = models.DateTimeField()
 
-    @property
-    def state(self):
-        if timezone.now() > self.closed_at:
-            return 'finished'
-        else:
-            return 'active'
+    STATUS_CHOICES = [
+        ('open', 'Open'),
+        ('closed', 'Closed')
+    ]
 
+    status = models.CharField(choices=STATUS_CHOICES, max_length=10, default='open')
     participants = models.ManyToManyField(User, related_name='counter_group_participants')
 
     def __str__(self):
