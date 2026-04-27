@@ -22,10 +22,10 @@ from cont01app.views import create_counter, get_counter_stats, update_counter, d
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('counters/', get_counter),
-    path('counters/<int:counter_id>/stats/', get_counter_stats),
-    path('counters/create/', create_counter),
-    path('counters/<int:counter_id>/update/', update_counter),
-    path('counters/<int:counter_id>/delete/', delete_counter),
-    path('counters/<int:counter_id>/increment/', increment_counter),
+    path('api/counters/', get_counter),
+    path('api/counters/<int:counter_id>/stats/', get_counter_stats),
+    path('api/counters/create/', create_counter),
+    path('api/counters/<int:counter_id>/update/', update_counter),
+    path('api/counters/<int:counter_id>/delete/', delete_counter),
+    path('api/counters/<int:counter_id>/increment/', increment_counter),
 ]
