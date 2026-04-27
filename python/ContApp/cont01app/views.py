@@ -7,7 +7,7 @@ from django.db.models import Count, F
 from django.http import JsonResponse
 from django.shortcuts import render, get_object_or_404
 
-from cont01app.models import Counter, CountEntry
+from cont01app.models import Counter, CounterMembership
 
 def get_counter(request):
     if request.method == 'GET':
@@ -85,7 +85,7 @@ def get_counter_stats(request, counter_id):
         counter = get_object_or_404(Counter, id=counter_id)
 
         sort_order = request.GET.get('sort_order', 'desc')
-        ranking_query = CountEntry.objects.filter(counter=counter).values(
+        ranking_query = CounterMembership.objects.filter(counter=counter).values(
             username=F('user__username')
         ).annotate(
             total_clicks=Count('id'),
@@ -161,12 +161,12 @@ def increment_counter(request, counter_id):
         if request.user not in counter.participants.all():
             return JsonResponse({'error': 'You must join the counter first'}, status=401)
 
-        CountEntry.objects.create(
+        CounterMembership.objects.create(
             user=request.user,
             counter=counter,
         )
 
-        user_total_clicks = CountEntry.objects.filter(user=request.user, counter=counter).count()
+        user_total_clicks = CounterMembership.objects.filter(user=request.user, counter=counter).count()
 
         return JsonResponse({
             'message': 'Counter incremented successfully!',
