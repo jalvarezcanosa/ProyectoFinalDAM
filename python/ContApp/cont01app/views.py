@@ -49,6 +49,37 @@ def get_counter(request):
         return JsonResponse({"error": "Method not allowed!"}, status=405)
 
 
+def get_counter_mine(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'Authentication required'}, status=401)
+
+    if request.method == 'GET':
+        memberships = CounterMembership.objects.filter(user=request.user).select_related('counter')
+
+        counters_list = []
+
+        for membership in memberships:
+            counter = membership.counter
+
+            check_status(counter)
+
+            global_count = CounterMembership.objects.filter(counter=counter).aggregate(total=Sum('individual_count'))['total'] or 0
+
+            counters_list.append({
+                "id": counter.id,
+                "title": counter.title,
+                "image_url": counter.image.url if counter.image else None,
+                "status": counter.status,
+                "global_count": global_count,
+                "individual_count": membership.individual_count,
+            })
+
+        return JsonResponse(counters_list, safe=False, status=200)
+
+    else:
+        return JsonResponse({"error": "Method not allowed!"}, status=405)
+
+
 def create_counter(request):
     if not request.user.is_authenticated:
         return JsonResponse({'error': 'Authentication required'}, status=401)
@@ -95,9 +126,7 @@ def get_counter_by_id(request, counter_id):
         if not CounterMembership.objects.filter(user=request.user, counter=counter).exists():
             return JsonResponse({'error': 'You are not a member of this counter'}, status=403)
 
-        if counter.closed_at < timezone.now() and counter.status != 'closed':
-            counter.status = 'closed'
-            counter.save()
+        check_status(counter)
 
         ranking_query = CounterMembership.objects.filter(counter=counter).values(
             username=F('user__username'),
@@ -238,3 +267,8 @@ def join_counter(request):
 
     else:
         return JsonResponse({"error": "Method not allowed!"}, status=405)
+
+def check_status(counter: Counter):
+    if counter.closed_at < timezone.now() and counter.status != 'closed':
+        counter.status = 'closed'
+        counter.save()

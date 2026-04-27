@@ -1,5 +1,5 @@
 import uuid
-from datetime import timezone
+from django.utils import timezone
 
 from django.contrib.auth.models import User
 from django.db import models
@@ -23,8 +23,7 @@ class Counter(models.Model):
     ]
 
     status = models.CharField(choices=STATUS_CHOICES, max_length=10, default='open')
-    participants = models.ManyToManyField(User, related_name='counter_group_participants')
-
+    participants = models.ManyToManyField(User, through='CounterMembership', related_name='counters')
     def __str__(self):
         return self.title
 
@@ -32,13 +31,8 @@ class CounterMembership(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     counter = models.ForeignKey(Counter, on_delete=models.CASCADE)
     individual_count = models.IntegerField(default=0)
-    joined_at = models.DateTimeField()
+    joined_at = models.DateTimeField(auto_now=timezone.now())
 
     class Meta:
         verbose_name_plural = 'Counter Entries'
-
-    def __str__(self):
-        return f'{self.user.username} +1 in {self.group.title}'
-
-
-
+        unique_together = ('user', 'counter')
