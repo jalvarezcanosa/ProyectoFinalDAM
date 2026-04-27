@@ -5,20 +5,20 @@ from django.utils import timezone
 from django.core.files.base import ContentFile
 from django.db.models import Count, F
 from django.http import JsonResponse
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import get_object_or_404
 
 from cont01app.models import Counter, CounterMembership
 
 def get_counter(request):
     if request.method == 'GET':
-        counter = Counter.objects.filter(participants = request.user)
+        counter = Counter.objects.filter(participants=request.user)
 
-        status = request.GET.get('status')
+        status_param = request.GET.get('status')
 
-        if status == 'active':
-            counter = counter.filter(closed_at__gt=timezone.now())
-        elif status == 'finished':
-            counter = counter.filter(closed_at__le=timezone.now())
+        if status_param == 'open':
+            counter = counter.filter(status='open')
+        elif status_param == 'closed':
+            counter = counter.filter(status='closed')
 
         counters_list = []
         for c in counter:
@@ -26,14 +26,13 @@ def get_counter(request):
                 "id": c.id,
                 "title": c.title,
                 "description": c.description,
-                "image_url": c.image,
+                "image_url": c.image.url if c.image else None,
                 "closed_at": c.closed_at,
-                "state": c.state,
+                "status": c.status,
                 "participants_count": c.participants.count(),
             })
 
         return JsonResponse(counters_list, safe=False, status=200)
-
     else:
         return JsonResponse({"error": "Method not allowed!"}, status=405)
 
@@ -50,17 +49,17 @@ def create_counter(request):
         image_b64 = data.get('image_base64')
 
         if not title or not closed_at:
-            return JsonResponse({'message': 'Title and close at are required'}, status=400)
+            return JsonResponse({'message': 'Title and closed_at are required'}, status=400)
 
         new_counter = Counter(
             title=title,
             description=description,
             closed_at=closed_at,
-            creator = request.user,
+            creator=request.user,
         )
 
         if image_b64:
-            if ';base64' in image_b64:
+            if ';base64,' in image_b64:
                 format, imgstr = image_b64.split(';base64,')
                 ext = format.split('/')[-1]
             else:
@@ -68,15 +67,15 @@ def create_counter(request):
                 ext = 'jpg'
 
             data_image = ContentFile(base64.b64decode(imgstr), name=f'foto_temp.{ext}')
-
             new_counter.image = data_image
 
         new_counter.save()
-
         new_counter.participants.add(request.user)
 
-        return JsonResponse({"message": "Counter created successfully!",
-        "counter_id": new_counter.id}, status=201)
+        return JsonResponse({
+            "message": "Counter created successfully!",
+            "counter_id": new_counter.id
+        }, status=201)
     else:
         return JsonResponse({"error": "Method not allowed!"}, status=405)
 
@@ -98,7 +97,8 @@ def get_counter_stats(request, counter_id):
 
         response_data = {
             "counter": counter.title,
-            "closed_at": counter.closed_at < timezone.now(),
+            "status": counter.status,
+            "closed_at_passed": counter.closed_at < timezone.now(),
             "participants": counter.participants.count(),
             "ranking": list(ranking_query),
         }
@@ -145,7 +145,6 @@ def delete_counter(request, counter_id):
             return JsonResponse({"message": "Forbidden: Only the creator can delete this counter."}, status=403)
 
         counter.delete()
-
         return JsonResponse({"message": "Counter deleted successfully!"}, status=200)
 
     else:
@@ -155,8 +154,8 @@ def increment_counter(request, counter_id):
     if request.method == 'POST':
         counter = get_object_or_404(Counter, id=counter_id)
 
-        if counter.state == 'finished':
-            return JsonResponse({'error': 'Counter already closed!'}, status=400)
+        if counter.status == 'closed':
+            return JsonResponse({'error': 'Counter is already closed!'}, status=400)
 
         if request.user not in counter.participants.all():
             return JsonResponse({'error': 'You must join the counter first'}, status=401)
