@@ -1,274 +1,322 @@
+import token
+from datetime import datetime, timedelta
 import json
+from json import JSONDecodeError
+
+import jwt
+from django.conf import settings
+from django.contrib.auth import get_user_model
+from django.db.models.functions import Coalesce
 from django.utils import timezone
-from django.db.models import F, Sum
+from django.db.models import F, Sum, Q, Value
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
+from django.utils.dateparse import parse_datetime
+from rest_framework.decorators import permission_classes, api_view
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework_simplejwt.tokens import RefreshToken
 
-from cont01app.models import Counter, CounterMembership
+from cont01app.models import Counter, CounterMembership, CustomUser
 
-
-def get_counter(request):
-    if not request.user.is_authenticated:
-        return JsonResponse({'error': 'Authentication required'}, status=401)
-
-    if request.method == 'GET':
-        user_counters = Counter.objects.filter(participants=request.user)
-
-        for c in user_counters:
-            if c.closed_at < timezone.now() and c.status != 'closed':
-                c.status = 'closed'
-                c.save()
-
-        status_param = request.GET.get('status')
-        if status_param == 'open':
-            user_counters = user_counters.filter(status='open')
-        elif status_param == 'closed':
-            user_counters = user_counters.filter(status='closed')
-
-        counters_list = []
-        for c in user_counters:
-            membership = CounterMembership.objects.filter(user=request.user, counter=c).first()
-            individual_count = membership.individual_count if membership else 0
-            global_count = CounterMembership.objects.filter(counter=c).aggregate(total=Sum('individual_count'))[
-                               'total'] or 0
-
-            counters_list.append({
-                "id": c.id,
-                "title": c.title,
-                "description": c.description,
-                "image_url": c.image.url if c.image else None,
-                "closed_at": c.closed_at,
-                "status": c.status,
-                "individual_count": individual_count,
-                "global_count": global_count,
-            })
-
-        return JsonResponse(counters_list, safe=False, status=200)
-
-    else:
-        return JsonResponse({"error": "Method not allowed!"}, status=405)
+User = get_user_model()
 
 
-def get_counter_mine(request):
-    if not request.user.is_authenticated:
-        return JsonResponse({'error': 'Authentication required'}, status=401)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register(request):
+    data = request.data
 
-    if request.method == 'GET':
-        memberships = CounterMembership.objects.filter(user=request.user).select_related('counter')
+    username = data.get('username')
+    email = data.get('email')
+    password = data.get('password')
+    telephone = data.get('telephone')
 
-        counters_list = []
+    if not username or not email or not password or not telephone:
+        return JsonResponse({'error': 'Missing required data'}, status=400)
 
-        for membership in memberships:
-            counter = membership.counter
+    if User.objects.filter(username=username).exists():
+        return JsonResponse({'error': 'Username already exists'}, status=400)
 
-            check_status(counter)
+    if User.objects.filter(email=email).exists():
+        return JsonResponse({'error': 'email already exists'}, status=400)
 
-            global_count = CounterMembership.objects.filter(counter=counter).aggregate(total=Sum('individual_count'))['total'] or 0
+    if User.objects.filter(telephone=telephone).exists():
+        return JsonResponse({'error': 'telephone already exists'}, status=400)
 
-            counters_list.append({
-                "id": counter.id,
-                "title": counter.title,
-                "image_url": counter.image.url if counter.image else None,
-                "status": counter.status,
-                "global_count": global_count,
-                "individual_count": membership.individual_count,
-            })
+    ## create_user hashea automáticamente la contraseña
+    new_user = User.objects.create_user(
+        username=username,
+        email=email,
+        telephone=telephone,
+        password=password,
+    )
 
-        return JsonResponse(counters_list, safe=False, status=200)
+    refresh = RefreshToken.for_user(new_user)
 
-    else:
-        return JsonResponse({"error": "Method not allowed!"}, status=405)
-
-
-def create_counter(request):
-    if not request.user.is_authenticated:
-        return JsonResponse({'error': 'Authentication required'}, status=401)
-
-    if request.method == 'POST':
-        title = request.POST.get('title')
-        description = request.POST.get('description')
-        closed_at = request.POST.get('closed_at')
-        image = request.FILES.get('image')
-
-        if not title or not closed_at:
-            return JsonResponse({'message': 'Title and closed_at are required'}, status=400)
-
-        new_counter = Counter(
-            title=title,
-            description=description,
-            closed_at=closed_at,
-            creator=request.user,
-        )
-
-        if image:
-            new_counter.image = image
-
-        new_counter.save()
-
-        CounterMembership.objects.create(user=request.user, counter=new_counter, individual_count=0)
-
-        return JsonResponse({
-            "message": "Counter created successfully!",
-            "counter_id": new_counter.id,
-            "invite_code": str(new_counter.invite_code)
-        }, status=201)
-    else:
-        return JsonResponse({"error": "Method not allowed!"}, status=405)
-
-
-def get_counter_by_id(request, counter_id):
-    if not request.user.is_authenticated:
-        return JsonResponse({'error': 'Authentication required'}, status=401)
-
-    if request.method == 'GET':
-        counter = get_object_or_404(Counter, id=counter_id)
-
-        if not CounterMembership.objects.filter(user=request.user, counter=counter).exists():
-            return JsonResponse({'error': 'You are not a member of this counter'}, status=403)
-
-        check_status(counter)
-
-        ranking_query = CounterMembership.objects.filter(counter=counter).values(
-            username=F('user__username'),
-            total_clicks=F('individual_count')
-        ).order_by('-individual_count')
-
-        response_data = {
-            "counter": counter.title,
-            "status": counter.status,
-            "participants": counter.participants.count(),
-            "ranking": list(ranking_query),
+    return JsonResponse({
+        'refresh': str(refresh),
+        'access': str(refresh.access_token),
+        'user': {
+            'id': new_user.id,
+            'username': new_user.username,
+            'email': new_user.email,
+            'telephone': new_user.telephone,
         }
-
-        return JsonResponse(response_data, safe=False, status=200)
-    else:
-        return JsonResponse({"error": "Method not allowed!"}, status=405)
+    }, status=201)
 
 
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def login(request):
+    data = request.data
+
+    identifier = data.get('username') or data.get('email') or data.get('telephone')
+    password = data.get('password')
+
+    if not identifier or not password:
+        return JsonResponse({'error': 'Identifier and password are required'}, status=400)
+
+    user = User.objects.filter(
+        Q(username=identifier) |
+        Q(email=identifier) |
+        Q(telephone=identifier)
+    ).first()
+
+    if user is None or not user.check_password(password):
+        return JsonResponse({'error': 'Invalid credentials'}, status=401)
+
+    payload = {
+        'user_id': user.id,
+        'exp': datetime.now() + timedelta(days=7),
+    }
+    token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+
+    return JsonResponse({
+        'token': token,
+        'user': {
+            'id': user.id,
+            'username': user.username,
+            'email': user.email,
+            'telephone': user.telephone,
+        }
+    }, status=200)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_counter(request):
+    user_counters = Counter.objects.filter(participants=request.user)
+
+    status_param = request.query_params.get('status')
+
+    if status_param == 'open':
+        user_counters = user_counters.filter(closed_at__gt=timezone.now())
+    elif status_param == 'closed':
+        user_counters = user_counters.filter(closed_at__lte=timezone.now())
+
+    counters_list = []
+    for c in user_counters:
+        membership = CounterMembership.objects.filter(user=request.user, counter=c).first()
+        individual_count = membership.individual_count if membership else 0
+        global_count = CounterMembership.objects.filter(counter=c).aggregate(total=Sum('individual_count'))['total'] or 0
+        counters_list.append({
+            "id": c.id,
+            "title": c.title,
+            "description": c.description,
+            "image_url": c.image.url if c.image else None,
+            "closed_at": c.closed_at,
+            "status": c.status,
+            "individual_count": individual_count,
+            "global_count": global_count,
+        })
+
+    return JsonResponse(counters_list, safe=False, status=200)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_counter_mine(request):
+    memberships = CounterMembership.objects.filter(user=request.user).select_related('counter')
+
+    counters_list = []
+
+    for membership in memberships:
+        counter = membership.counter
+
+        global_count = CounterMembership.objects.filter(counter=counter).aggregate(total=Sum('individual_count'))['total'] or 0
+
+        counters_list.append({
+            "id": counter.id,
+            "title": counter.title,
+            "image_url": counter.image.url if counter.image else None,
+            "status": counter.status,
+            "global_count": global_count,
+            "individual_count": membership.individual_count,
+        })
+
+    return JsonResponse(counters_list, safe=False, status=200)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def create_counter(request):
+    title = request.data.get('title')
+    description = request.data.get('description')
+    closed_at = request.data.get('closed_at')
+    image = request.data.get('image')
+
+    if not title or not closed_at:
+        return JsonResponse({'message': 'Title and closed_at are required'}, status=400)
+
+    closed_at_parse = parse_datetime(closed_at)
+
+    if closed_at_parse < timezone.now():
+        return JsonResponse({'error': 'The closed_at date cannot be in the past!'}, status=400)
+
+    new_counter = Counter(
+        title=title,
+        description=description,
+        closed_at=closed_at,
+        creator=request.user,
+    )
+
+    if image:
+        new_counter.image = image
+
+    new_counter.save()
+
+    CounterMembership.objects.create(user=request.user, counter=new_counter, individual_count=0)
+
+    return JsonResponse({
+        "message": "Counter created successfully!",
+        "counter_id": new_counter.id,
+        "invite_code": str(new_counter.invite_code)
+    }, status=201)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_counter_by_id(request, counter_id):
+    counter = get_object_or_404(Counter, id=counter_id)
+
+    if not CounterMembership.objects.filter(user=request.user, counter=counter).exists():
+        return JsonResponse({'error': 'You are not a member of this counter'}, status=403)
+
+    ranking_query = CounterMembership.objects.filter(counter=counter).values(
+        username=F('user__username'),
+        total_clicks=F('individual_count')
+    ).order_by('-individual_count')
+
+    global_count = CounterMembership.objects.filter(counter=counter).aggregate(total=Sum('individual_count'))['total'] or 0
+
+    response_data = {
+        "counter": counter.title,
+        "status": counter.status,
+        "participants": counter.participants.count(),
+        "ranking": list(ranking_query),
+        "global_count": global_count,
+        "invitate_code": str(counter.invite_code),
+    }
+
+    return JsonResponse(response_data, safe=False, status=200)
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
 def update_counter(request, counter_id):
-    if not request.user.is_authenticated:
-        return JsonResponse({'error': 'Authentication required'}, status=401)
+    counter = get_object_or_404(Counter, id=counter_id)
 
-    if request.method == 'PUT':
-        counter = get_object_or_404(Counter, id=counter_id)
+    if counter.creator != request.user:
+        return JsonResponse({'error': 'Not authorized'}, status=403)
 
-        if counter.creator != request.user:
-            return JsonResponse({'error': 'Not authorized'}, status=403)
+    if counter.status == 'closed':
+        return JsonResponse({'error': 'Counter is closed and cannot be modified'}, status=400)
 
-        if counter.status == 'closed':
-            return JsonResponse({'error': 'Counter is closed and cannot be modified'}, status=400)
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
 
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    if 'title' in data:
+        counter.title = data['title']
 
-        if 'title' in data:
-            counter.title = data['title']
+    if 'description' in data:
+        counter.description = data['description']
 
-        if 'description' in data:
-            counter.description = data['description']
+    if 'closed_at' in data:
+        counter.closed_at = data['closed_at']
 
-        if 'closed_at' in data:
-            counter.closed_at = data['closed_at']
+    counter.save()
 
-        counter.save()
-
-        return JsonResponse({
-            "message": "Counter updated successfully!",
-            "counter_id": counter.id
-        }, status=200)
-    else:
-        return JsonResponse({"error": "Method not allowed!"}, status=405)
+    return JsonResponse({
+        "message": "Counter updated successfully!",
+        "counter_id": counter.id,
+    }, status=200)
 
 
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
 def delete_counter(request, counter_id):
-    if not request.user.is_authenticated:
-        return JsonResponse({'error': 'Authentication required'}, status=401)
+    counter = get_object_or_404(Counter, id=counter_id)
 
-    if request.method == 'DELETE':
-        counter = get_object_or_404(Counter, id=counter_id)
+    if counter.creator != request.user:
+        return JsonResponse({"message": "Forbidden: Only the creator can delete this counter."}, status=403)
 
-        if counter.creator != request.user:
-            return JsonResponse({"message": "Forbidden: Only the creator can delete this counter."}, status=403)
+    counter.delete()
 
-        counter.delete()
-
-        return JsonResponse({}, status=204)
-
-    else:
-        return JsonResponse({"error": "Method not allowed!"}, status=405)
+    return JsonResponse({"message": "Counter deleted successfully"}, status=204)
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def increment_counter(request, counter_id):
-    if not request.user.is_authenticated:
-        return JsonResponse({'error': 'Authentication required'}, status=401)
+    counter = get_object_or_404(Counter, id=counter_id)
 
-    if request.method == 'POST':
-        counter = get_object_or_404(Counter, id=counter_id)
+    if counter.status == 'closed':
+        return JsonResponse({'error': 'Counter is already closed!'}, status=400)
 
-        if counter.status == 'closed':
-            return JsonResponse({'error': 'Counter is already closed!'}, status=400)
+    membership = CounterMembership.objects.filter(user=request.user, counter=counter).first()
 
-        membership = CounterMembership.objects.filter(user=request.user, counter=counter).first()
+    if not membership:
+        return JsonResponse({'error': 'You must join the counter first'}, status=401)
 
-        if not membership:
-            return JsonResponse({'error': 'You must join the counter first'}, status=401)
+    membership.individual_count += 1
+    membership.save()
 
-        membership.individual_count += 1
-        membership.save()
+    global_count = CounterMembership.objects.filter(counter=counter).aggregate(total=Sum('individual_count'))['total'] or 0
 
-        global_count = CounterMembership.objects.filter(counter=counter).aggregate(total=Sum('individual_count'))[
-                           'total'] or 0
-
-        return JsonResponse({
-            'message': 'Counter incremented successfully!',
-            'individual_count': membership.individual_count,
-            'global_count': global_count
-        }, status=200)
-
-    else:
-        return JsonResponse({"error": "Method not allowed!"}, status=405)
+    return JsonResponse({
+        'message': 'Counter incremented successfully!',
+        'individual_count': membership.individual_count,
+        'global_count': global_count
+    }, status=200)
 
 
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
 def join_counter(request):
-    if not request.user.is_authenticated:
-        return JsonResponse({'error': 'Authentication required'}, status=401)
+    data = request.data
 
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-        except json.JSONDecodeError:
-            return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    invite_code = data.get('invite_code')
+    if not invite_code:
+        return JsonResponse({'error': 'invite_code is required'}, status=400)
 
-        invite_code = data.get('invite_code')
-        if not invite_code:
-            return JsonResponse({'error': 'invite_code is required'}, status=400)
+    counter = Counter.objects.filter(invite_code=invite_code).first()
+    if not counter:
+        return JsonResponse({'error': 'Counter not found'}, status=404)
 
-        counter = Counter.objects.filter(invite_code=invite_code).first()
-        if not counter:
-            return JsonResponse({'error': 'Counter not found'}, status=404)
+    if counter.status != 'open':
+        return JsonResponse({'error': 'Counter is closed'}, status=400)
 
-        if counter.status != 'open':
-            return JsonResponse({'error': 'Counter is closed'}, status=400)
+    if CounterMembership.objects.filter(user=request.user, counter=counter).exists():
+        return JsonResponse({'error': 'You are already a member'}, status=400)
 
-        if CounterMembership.objects.filter(user=request.user, counter=counter).exists():
-            return JsonResponse({'error': 'You are already a member'}, status=400)
+    CounterMembership.objects.create(user=request.user, counter=counter, individual_count=0)
 
-        CounterMembership.objects.create(user=request.user, counter=counter, individual_count=0)
-
-        return JsonResponse({
-            'id': counter.id,
-            'title': counter.title,
-            'description': counter.description,
-            'status': counter.status,
-            'invite_code': str(counter.invite_code)
-        }, status=201)
-
-    else:
-        return JsonResponse({"error": "Method not allowed!"}, status=405)
-
-def check_status(counter: Counter):
-    if counter.closed_at < timezone.now() and counter.status != 'closed':
-        counter.status = 'closed'
-        counter.save()
+    return JsonResponse({
+        'id': counter.id,
+        'title': counter.title,
+        'description': counter.description,
+        'status': counter.status,
+        'invite_code': str(counter.invite_code)
+    }, status=201)

@@ -21,23 +21,27 @@ class Counter(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True)
     closed_at = models.DateTimeField()
-
-    STATUS_CHOICES = [
-        ('open', 'Open'),
-        ('closed', 'Closed')
-    ]
-
-    status = models.CharField(choices=STATUS_CHOICES, max_length=10, default='open')
     participants = models.ManyToManyField(settings.AUTH_USER_MODEL, through='CounterMembership', related_name='counters')
+
+    @property
+    def is_open(self):
+        return self.closed_at > timezone.now()
+
+    @property
+    def status(self):
+        return 'open' if self.is_open else 'closed'
+
     def __str__(self):
         return self.title
 
 class CounterMembership(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     counter = models.ForeignKey(Counter, on_delete=models.CASCADE)
     individual_count = models.IntegerField(default=0)
     joined_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name_plural = 'Counter Entries'
-        unique_together = ('user', 'counter')
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'counter'], name='unique_user_counter_membership')
+        ]
