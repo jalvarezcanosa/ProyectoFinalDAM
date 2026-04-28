@@ -104,54 +104,25 @@ def login(request):
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
-def get_counter(request):
-    user_counters = Counter.objects.filter(participants=request.user)
-
-    status_param = request.query_params.get('status')
-
-    if status_param == 'open':
-        user_counters = user_counters.filter(closed_at__gt=timezone.now())
-    elif status_param == 'closed':
-        user_counters = user_counters.filter(closed_at__lte=timezone.now())
-
-    counters_list = []
-    for c in user_counters:
-        membership = CounterMembership.objects.filter(user=request.user, counter=c).first()
-        individual_count = membership.individual_count if membership else 0
-        global_count = CounterMembership.objects.filter(counter=c).aggregate(total=Sum('individual_count'))['total'] or 0
-        counters_list.append({
-            "id": c.id,
-            "title": c.title,
-            "description": c.description,
-            "image_url": c.image.url if c.image else None,
-            "closed_at": c.closed_at,
-            "status": c.status,
-            "individual_count": individual_count,
-            "global_count": global_count,
-        })
-
-    return JsonResponse(counters_list, safe=False, status=200)
-
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
 def get_counter_mine(request):
     memberships = CounterMembership.objects.filter(user=request.user).select_related('counter')
+
+    memberships = memberships.annotate(
+        global_count_annotated=Sum('counter__countermembership__individual_count')
+    )
 
     counters_list = []
 
     for membership in memberships:
         counter = membership.counter
 
-        global_count = CounterMembership.objects.filter(counter=counter).aggregate(total=Sum('individual_count'))['total'] or 0
-
         counters_list.append({
             "id": counter.id,
             "title": counter.title,
             "image_url": counter.image.url if counter.image else None,
             "status": counter.status,
-            "global_count": global_count,
             "individual_count": membership.individual_count,
+            "global_count": membership.global_count_annotated or 0,
         })
 
     return JsonResponse(counters_list, safe=False, status=200)
@@ -215,7 +186,7 @@ def get_counter_by_id(request, counter_id):
         "participants": counter.participants.count(),
         "ranking": list(ranking_query),
         "global_count": global_count,
-        "invitate_code": str(counter.invite_code),
+        "invite_code": str(counter.invite_code),
     }
 
     return JsonResponse(response_data, safe=False, status=200)

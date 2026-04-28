@@ -19,15 +19,14 @@ from django.urls import path
 
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from cont01app.views import create_counter, get_counter_by_id, update_counter, delete_counter, increment_counter, \
-    get_counter, get_counter_mine, register, login, join_counter
+    get_counter_mine, register, login, join_counter
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/auth/register/', register),
     path('api/auth/login/', TokenObtainPairView.as_view()),
     path('api/auth/refresh/', TokenRefreshView.as_view()),
-    path('api/counters/', get_counter),
-    path('api/counters/mine/', get_counter_mine),
+    path('api/counters/', get_counter_mine),
     path('api/counters/<int:counter_id>/', get_counter_by_id),
     path('api/counters/create/', create_counter),
     path('api/counters/<int:counter_id>/update/', update_counter),
