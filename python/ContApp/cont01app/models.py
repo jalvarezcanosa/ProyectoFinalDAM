@@ -1,16 +1,21 @@
 import uuid
+
+from django.conf import settings
 from django.utils import timezone
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-# Create your models here.
+class CustomUser(AbstractUser):
+    telephone = models.CharField(max_length=12, unique=True)
+    email = models.EmailField(max_length=254, unique=True)
+
 class Counter(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     image = models.ImageField(upload_to='counter_images/', null=True, blank=True)
 
-    creator = models.ForeignKey(User, on_delete=models.CASCADE, related_name='created_counters')
+    creator = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='created_counters')
 
     invite_code = models.UUIDField(default=uuid.uuid4, editable=False)
 
@@ -23,15 +28,15 @@ class Counter(models.Model):
     ]
 
     status = models.CharField(choices=STATUS_CHOICES, max_length=10, default='open')
-    participants = models.ManyToManyField(User, through='CounterMembership', related_name='counters')
+    participants = models.ManyToManyField(settings.AUTH_USER_MODEL, through='CounterMembership', related_name='counters')
     def __str__(self):
         return self.title
 
 class CounterMembership(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     counter = models.ForeignKey(Counter, on_delete=models.CASCADE)
     individual_count = models.IntegerField(default=0)
-    joined_at = models.DateTimeField(auto_now=timezone.now())
+    joined_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name_plural = 'Counter Entries'
