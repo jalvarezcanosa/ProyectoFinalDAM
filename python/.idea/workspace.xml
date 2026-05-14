@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="ALL" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="455ec24b-c56d-42d1-81f6-fb8b34b57d99" name="Changes" comment="eliminación de get_counter porque es mejor el uso de get_counter_mine">
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/copilot.data.migration.agent.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/inspectionProfiles/profiles_settings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/python.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/python.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ContApp/ContApp/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/ContApp/ContApp/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ContApp/ContApp/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/ContApp/ContApp/urls.py" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$/.." value="GH-11" />
+      </map>
+    </option>
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 2,
+  &quot;fromUser&quot;: false
+}</component>
+  <component name="ProjectId" id="3CIbAT832nK18yuJZhD38aQnzez" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Python.ContApp.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;develop&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/administracion03/Desktop/ProyectoFinalDAMDjango/python&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RunManager">
+    <configuration name="ContApp" type="PythonConfigurationType" factoryName="Python">
+      <module name="python" />
+      <option name="ENV_FILES" value="" />
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs>
+        <env name="PYTHONUNBUFFERED" value="1" />
+      </envs>
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <option name="DEBUG_JUST_MY_CODE" value="false" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" runner="coverage.py" />
+      <option name="RUN_TOOL" value="" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/ContApp/manage.py" />
+      <option name="PARAMETERS" value="runserver" />
+      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="EMULATE_TERMINAL" value="false" />
+      <option name="MODULE_MODE" value="false" />
+      <option name="REDIRECT_INPUT" value="false" />
+      <option name="INPUT_FILE" value="" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-python-sdk-b63d5a1f7c97-b61e75351b1f-com.jetbrains.pycharm.pro.sharedIndexes.bundled-PY-261.22158.340" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="455ec24b-c56d-42d1-81f6-fb8b34b57d99" name="Changes" comment="" />
+      <created>1776075891438</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1776075891438</updated>
+      <workItem from="1776075894656" duration="8380000" />
+      <workItem from="1776331029386" duration="5717000" />
+      <workItem from="1776339751278" duration="4439000" />
+      <workItem from="1777279232362" duration="11969000" />
+      <workItem from="1777360705986" duration="21140000" />
+      <workItem from="1777389106837" duration="740000" />
+      <workItem from="1778220672386" duration="7000" />
+    </task>
+    <task id="LOCAL-00001" summary="modificación en la url de get_counter_stats">
+      <option name="closed" value="true" />
+      <created>1776077315002</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1776077315002</updated>
+    </task>
+    <task id="LOCAL-00002" summary="put de counters hecho">
+      <option name="closed" value="true" />
+      <created>1776077968642</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1776077968642</updated>
+    </task>
+    <task id="LOCAL-00003" summary="delete de counters hecho">
+      <option name="closed" value="true" />
+      <created>1776078427184</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1776078427184</updated>
+    </task>
+    <task id="LOCAL-00004" summary="post para el +1 en el counter">
+      <option name="closed" value="true" />
+      <created>1776079593712</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1776079593712</updated>
+    </task>
+    <task id="LOCAL-00005" summary="get counters hecho">
+      <option name="closed" value="true" />
+      <created>1776084156590</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1776084156590</updated>
+    </task>
+    <task id="LOCAL-00006" summary="arreglos en views y modificación de models.py, neuvo campo @property llamado state">
+      <option name="closed" value="true" />
+      <created>1776335108113</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1776335108113</updated>
+    </task>
+    <task id="LOCAL-00007" summary="acondicionamiento de los endpoints con el @property state">
+      <option name="closed" value="true" />
+      <created>1776351084184</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1776351084184</updated>
+    </task>
+    <task id="LOCAL-00008" summary="url de get counter">
+      <option name="closed" value="true" />
+      <created>1776351391746</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1776351391746</updated>
+    </task>
+    <task id="LOCAL-00009" summary="cambio en las urls y en los modelos">
+      <option name="closed" value="true" />
+      <created>1777287563880</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1777287563880</updated>
+    </task>
+    <task id="LOCAL-00010" summary="refactorización de views para que funcione correctamente con los cambios en models">
+      <option name="closed" value="true" />
+      <created>1777287824310</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1777287824310</updated>
+    </task>
+    <task id="LOCAL-00011" summary="cambio de status, ahora pasa a ser un campo en base de datos">
+      <option name="closed" value="true" />
+      <created>1777288987920</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1777288987920</updated>
+    </task>
+    <task id="LOCAL-00012" summary="refactorización de views para que funcione con el nuevo campo de status">
+      <option name="closed" value="true" />
+      <created>1777289619413</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1777289619413</updated>
+    </task>
+    <task id="LOCAL-00013" summary="refactorización de views.py">
+      <option name="closed" value="true" />
+      <created>1777298303962</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1777298303962</updated>
+    </task>
+    <task id="LOCAL-00014" summary="GH-8 terminado">
+      <option name="closed" value="true" />
+      <created>1777298776119</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1777298776119</updated>
+    </task>
+    <task id="LOCAL-00015" summary="cambio de nombre get_counter_stats a get_counter_by_id">
+      <option name="closed" value="true" />
+      <created>1777301947693</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1777301947693</updated>
+    </task>
+    <task id="LOCAL-00016" summary="endpoint get_counter_mine hecho y pequeña modificación en models.py">
+      <option name="closed" value="true" />
+      <created>1777304211673</created>
+      <option name="number" value="00016" />
+      <option name="presentableId" value="LOCAL-00016" />
+      <option name="project" value="LOCAL" />
+      <updated>1777304211673</updated>
+    </task>
+    <task id="LOCAL-00017" summary="añadido related_name a creator en models.py">
+      <option name="closed" value="true" />
+      <created>1777304544041</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1777304544041</updated>
+    </task>
+    <task id="LOCAL-00018" summary="creación de la tabla CustomUser usando AbstractUser">
+      <option name="closed" value="true" />
+      <created>1777363760835</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1777363760835</updated>
+    </task>
+    <task id="LOCAL-00019" summary="Creados endpoints register y login, añadida djangorestframework-simplejwt para gestión de tokens + debug de métodos">
+      <option name="closed" value="true" />
+      <created>1777377733488</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1777377733488</updated>
+    </task>
+    <task id="LOCAL-00020" summary="eliminación de get_counter porque es mejor el uso de get_counter_mine">
+      <option name="closed" value="true" />
+      <created>1777385371641</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1777385371641</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="modificación en la url de get_counter_stats" />
+    <MESSAGE value="put de counters hecho" />
+    <MESSAGE value="delete de counters hecho" />
+    <MESSAGE value="post para el +1 en el counter" />
+    <MESSAGE value="get counters hecho" />
+    <MESSAGE value="arreglos en views y modificación de models.py, neuvo campo @property llamado state" />
+    <MESSAGE value="acondicionamiento de los endpoints con el @property state" />
+    <MESSAGE value="url de get counter" />
+    <MESSAGE value="cambio en las urls y en los modelos" />
+    <MESSAGE value="refactorización de views para que funcione correctamente con los cambios en models" />
+    <MESSAGE value="cambio de status, ahora pasa a ser un campo en base de datos" />
+    <MESSAGE value="refactorización de views para que funcione con el nuevo campo de status" />
+    <MESSAGE value="refactorización de views.py" />
+    <MESSAGE value="GH-8 terminado" />
+    <MESSAGE value="cambio de nombre get_counter_stats a get_counter_by_id" />
+    <MESSAGE value="endpoint get_counter_mine hecho y pequeña modificación en models.py" />
+    <MESSAGE value="añadido related_name a creator en models.py" />
+    <MESSAGE value="creación de la tabla CustomUser usando AbstractUser" />
+    <MESSAGE value="Creados endpoints register y login, añadida djangorestframework-simplejwt para gestión de tokens + debug de métodos" />
+    <MESSAGE value="eliminación de get_counter porque es mejor el uso de get_counter_mine" />
+    <option name="LAST_COMMIT_MESSAGE" value="eliminación de get_counter porque es mejor el uso de get_counter_mine" />
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/python$ContApp.coverage" NAME="ContApp Coverage Results" MODIFIED="1777375490541" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
+  </component>
+</project>
