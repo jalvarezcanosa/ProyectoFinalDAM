@@ -20,14 +20,14 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from cont01app.views import create_counter, get_counter_by_id, update_counter, delete_counter, increment_counter, \
-    get_counter_mine, register, join_counter
+    get_counter_mine, register, join_counter, login
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
     path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
     path('api/auth/register/', register),
-    path('api/auth/login/', TokenObtainPairView.as_view()),
+    path('api/auth/login/', login),
     path('api/auth/refresh/', TokenRefreshView.as_view()),
     path('api/counters/', get_counter_mine),
     path('api/counters/<int:counter_id>/', get_counter_by_id),

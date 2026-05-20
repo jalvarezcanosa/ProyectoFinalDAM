@@ -85,11 +85,8 @@ def login(request):
     if user is None or not user.check_password(password):
         return JsonResponse({'error': 'Invalid credentials'}, status=401)
 
-    payload = {
-        'user_id': user.id,
-        'exp': datetime.now() + timedelta(days=7),
-    }
-    token = jwt.encode(payload, settings.SECRET_KEY, algorithm='HS256')
+    refresh = RefreshToken.for_user(user)
+    token = str(refresh.access_token)
 
     return JsonResponse({
         'token': token,

@@ -4,8 +4,11 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="455ec24b-c56d-42d1-81f6-fb8b34b57d99" name="Changes" comment="añadida dependencia de openapi.AutoSchema">
+    <list default="true" id="455ec24b-c56d-42d1-81f6-fb8b34b57d99" name="Changes" comment="añadido localhost de android(10.0.2.2) a allowed_hosts en settings.py">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ContApp/ContApp/settings.py" beforeDir="false" afterPath="$PROJECT_DIR$/ContApp/ContApp/settings.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ContApp/ContApp/urls.py" beforeDir="false" afterPath="$PROJECT_DIR$/ContApp/ContApp/urls.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ContApp/cont01app/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/ContApp/cont01app/views.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -266,7 +269,15 @@
       <option name="project" value="LOCAL" />
       <updated>1778749652185</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="añadido localhost de android(10.0.2.2) a allowed_hosts en settings.py">
+      <option name="closed" value="true" />
+      <created>1778768812421</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1778768812423</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -305,7 +316,8 @@
     <MESSAGE value="Creados endpoints register y login, añadida djangorestframework-simplejwt para gestión de tokens + debug de métodos" />
     <MESSAGE value="eliminación de get_counter porque es mejor el uso de get_counter_mine" />
     <MESSAGE value="añadida dependencia de openapi.AutoSchema" />
-    <option name="LAST_COMMIT_MESSAGE" value="añadida dependencia de openapi.AutoSchema" />
+    <MESSAGE value="añadido localhost de android(10.0.2.2) a allowed_hosts en settings.py" />
+    <option name="LAST_COMMIT_MESSAGE" value="añadido localhost de android(10.0.2.2) a allowed_hosts en settings.py" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/python$ContApp.coverage" NAME="ContApp Coverage Results" MODIFIED="1777375490541" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
