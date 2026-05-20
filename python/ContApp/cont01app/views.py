@@ -9,7 +9,7 @@ from django.contrib.auth import get_user_model
 from django.db.models.functions import Coalesce
 from django.utils import timezone
 from django.db.models import F, Sum, Q, Value
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from django.utils.dateparse import parse_datetime
 from rest_framework.decorators import permission_classes, api_view
@@ -138,6 +138,12 @@ def create_counter(request):
 
     closed_at_parse = parse_datetime(closed_at)
 
+    if closed_at_parse is None:
+        return JsonResponse({'error': 'Invalid date format'}, status=400)
+
+    if timezone.is_naive(closed_at_parse):
+        closed_at_parse = timezone.make_aware(closed_at_parse)
+
     if closed_at_parse < timezone.now():
         return JsonResponse({'error': 'The closed_at date cannot be in the past!'}, status=400)
 
@@ -232,7 +238,7 @@ def delete_counter(request, counter_id):
 
     counter.delete()
 
-    return JsonResponse({"message": "Counter deleted successfully"}, status=204)
+    return HttpResponse(status=204)
 
 
 @api_view(['POST'])
