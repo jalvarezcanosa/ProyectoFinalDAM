@@ -135,7 +135,9 @@ REST_FRAMEWORK = {
 }
 
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60), # El token corto
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),   # El token largo para no desloguear al usuario en el móvil
+    'ACCESS_TOKEN_LIFETIME': timedelta(days=7), # El token corto
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=8),   # El token largo para no desloguear al usuario en el móvil
+    'ROTATE_REFRESH_TOKENS': False,
+    'BLACKLIST_AFTER_ROTATION': False,
     'AUTH_HEADER_TYPES': ('Bearer',),
 }

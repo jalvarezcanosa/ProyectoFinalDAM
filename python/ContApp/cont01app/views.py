@@ -173,7 +173,9 @@ def create_counter(request):
 def get_counter_by_id(request, counter_id):
     counter = get_object_or_404(Counter, id=counter_id)
 
-    if not CounterMembership.objects.filter(user=request.user, counter=counter).exists():
+    membership = CounterMembership.objects.filter(user=request.user, counter=counter).first()
+
+    if not membership:
         return JsonResponse({'error': 'You are not a member of this counter'}, status=403)
 
     ranking_query = CounterMembership.objects.filter(counter=counter).values(
@@ -183,12 +185,21 @@ def get_counter_by_id(request, counter_id):
 
     global_count = CounterMembership.objects.filter(counter=counter).aggregate(total=Sum('individual_count'))['total'] or 0
 
+    image_url = None
+    if counter.image:
+        image_url = request.build_absolute_uri(counter.image.url)
+
     response_data = {
-        "counter": counter.title,
+        "id": counter.id,
+        "title": counter.title,
+        "description": counter.description,
+        "image_url": image_url,
         "status": counter.status,
+        "closed_at": counter.closed_at.isoformat() if counter.closed_at else None,
         "participants": counter.participants.count(),
-        "ranking": list(ranking_query),
         "global_count": global_count,
+        "individual_count": membership.individual_count,
+        "ranking": list(ranking_query),
         "invite_code": str(counter.invite_code),
     }
 
@@ -206,19 +217,27 @@ def update_counter(request, counter_id):
     if counter.status == 'closed':
         return JsonResponse({'error': 'Counter is closed and cannot be modified'}, status=400)
 
-    try:
-        data = json.loads(request.body)
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    data = request.data
 
-    if 'title' in data:
+    if 'title' in data and data['title']:
         counter.title = data['title']
 
     if 'description' in data:
         counter.description = data['description']
 
     if 'closed_at' in data:
-        counter.closed_at = data['closed_at']
+        closed_at_str = data['closed_at']
+        if closed_at_str == "":
+            counter.closed_at = None
+        else:
+            closed_at_parse = parse_datetime(closed_at_str)
+            if closed_at_parse is not None:
+                if timezone.is_naive(closed_at_parse):
+                    closed_at_parse = timezone.make_aware(closed_at_parse)
+                counter.closed_at = closed_at_parse
+
+    if 'image' in request.FILES:
+        counter.image = request.FILES['image']
 
     counter.save()
 
