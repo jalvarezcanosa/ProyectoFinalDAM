@@ -20,7 +20,7 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 from cont01app.views import create_counter, get_counter_by_id, update_counter, delete_counter, increment_counter, \
-    get_counter_mine, register, join_counter, login
+    get_counter_mine, register, join_counter, login, get_profile
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -29,6 +29,7 @@ urlpatterns = [
     path('api/auth/register/', register),
     path('api/auth/login/', login),
     path('api/auth/refresh/', TokenRefreshView.as_view()),
+    path('api/auth/profile/', get_profile),
     path('api/counters/', get_counter_mine),
     path('api/counters/<int:counter_id>/', get_counter_by_id),
     path('api/counters/create/', create_counter),

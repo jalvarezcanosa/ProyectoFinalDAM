@@ -313,3 +313,13 @@ def join_counter(request):
         'status': counter.status,
         'invite_code': str(counter.invite_code)
     }, status=201)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_profile(request):
+    user = request.user
+    return JsonResponse({
+        'username': user.username,
+        'email': user.email,
+        'telephone': user.telephone,
+    }, status=200)
