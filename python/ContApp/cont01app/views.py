@@ -201,6 +201,7 @@ def get_counter_by_id(request, counter_id):
         "individual_count": membership.individual_count,
         "ranking": list(ranking_query),
         "invite_code": str(counter.invite_code),
+        "is_creator": counter.creator == request.user,
     }
 
     return JsonResponse(response_data, safe=False, status=200)
