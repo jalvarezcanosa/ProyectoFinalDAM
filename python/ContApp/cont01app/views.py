@@ -102,7 +102,14 @@ def login(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_counter_mine(request):
+    status_filter = request.GET.get('status')
+
     memberships = CounterMembership.objects.filter(user=request.user).select_related('counter')
+
+    if status_filter == 'open':
+        memberships = memberships.filter(counter__closed_at__gt=timezone.now())
+    elif status_filter == 'closed':
+        memberships = memberships.filter(counter__closed_at__lte=timezone.now())
 
     memberships = memberships.annotate(
         global_count_annotated=Sum('counter__countermembership__individual_count')

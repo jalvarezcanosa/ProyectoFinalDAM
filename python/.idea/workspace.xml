@@ -4,7 +4,8 @@
     <option name="autoReloadType" value="ALL" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="455ec24b-c56d-42d1-81f6-fb8b34b57d99" name="Changes" comment="creado endpoint para profile">
+    <list default="true" id="455ec24b-c56d-42d1-81f6-fb8b34b57d99" name="Changes" comment="añadido campo is_creator en get_counter_by_id">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ContApp/cont01app/views.py" beforeDir="false" afterPath="$PROJECT_DIR$/ContApp/cont01app/views.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ContApp/db.sqlite3" beforeDir="false" afterPath="$PROJECT_DIR$/ContApp/db.sqlite3" afterDir="false" />
     </list>
@@ -299,7 +300,15 @@
       <option name="project" value="LOCAL" />
       <updated>1779439888611</updated>
     </task>
-    <option name="localTasksCounter" value="26" />
+    <task id="LOCAL-00026" summary="añadido campo is_creator en get_counter_by_id">
+      <option name="closed" value="true" />
+      <created>1779442026255</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1779442026255</updated>
+    </task>
+    <option name="localTasksCounter" value="27" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -317,7 +326,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="modificación en la url de get_counter_stats" />
     <MESSAGE value="put de counters hecho" />
     <MESSAGE value="delete de counters hecho" />
     <MESSAGE value="post para el +1 en el counter" />
@@ -342,7 +350,8 @@
     <MESSAGE value="arreglo de bugs con el token" />
     <MESSAGE value="bugfix y pruebas" />
     <MESSAGE value="creado endpoint para profile" />
-    <option name="LAST_COMMIT_MESSAGE" value="creado endpoint para profile" />
+    <MESSAGE value="añadido campo is_creator en get_counter_by_id" />
+    <option name="LAST_COMMIT_MESSAGE" value="añadido campo is_creator en get_counter_by_id" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/python$ContApp.coverage" NAME="ContApp Coverage Results" MODIFIED="1777375490541" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="" />
