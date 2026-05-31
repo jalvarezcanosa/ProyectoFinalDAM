@@ -458,7 +458,7 @@ python manage.py createsuperuser
 
 **7. Arrancar el servidor**
 ```bash
-python manage.py runserver 0.0.0.0:8000
+python manage.py runserver
 ```
 
 El servidor estará disponible en `http://127.0.0.1:8000/`. El emulador Android puede acceder a él en `http://10.0.2.2:8000/`.
